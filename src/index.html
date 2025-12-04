@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Locadora de Equipamentos</title>
+
+<!-- BOOTSTRAP -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+  body { background: #f2f0ff; }
+  h1 { color: #4b0082; margin-top: 20px; }
+  .card { border-radius: 12px; }
+  .btn-primary { background-color: #4b0082; border: none; }
+  .btn-primary:hover { background-color: #360063; }
+</style>
+</head>
+<body class="container">
+
+<h1 class="text-center fw-bold">🎧 Locadora de Equipamentos</h1>
+<p class="text-center text-secondary">Sistema de gestão de locações, equipamentos e parcelas</p>
+
+<!-- CLIENTES -->
+<div class="card shadow p-3 my-4">
+  <h3>Clientes</h3>
+  <button class="btn btn-primary" onclick="listarClientes()">Carregar Clientes</button>
+  <div id="clientes" class="mt-3"></div>
+</div>
+
+<!-- EQUIPAMENTOS -->
+<div class="card shadow p-3 my-4">
+  <h3>Equipamentos</h3>
+  <button class="btn btn-primary" onclick="listarEquipamentos()">Carregar Equipamentos</button>
+  <div id="equipamentos" class="mt-3"></div>
+</div>
+
+<!-- LOCACAO -->
+<div class="card shadow p-3 my-4">
+  <h3>Criar Locação</h3>
+
+  <div class="row g-2">
+    <div class="col-md-4">
+      <label>ID Cliente</label>
+      <input class="form-control" id="id_cliente">
+    </div>
+    <div class="col-md-4">
+      <label>Data Locação</label>
+      <input type="date" class="form-control" id="data_locacao">
+    </div>
+    <div class="col-md-4">
+      <label>Data Prevista</label>
+      <input type="date" class="form-control" id="data_prevista">
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3" onclick="criarLocacao()">Criar</button>
+  <div id="locacao_msg" class="mt-2 text-success"></div>
+</div>
+
+<!-- ITEM -->
+<div class="card shadow p-3 my-4">
+  <h3>Adicionar Item à Locação</h3>
+
+  <div class="row g-2">
+    <div class="col-md-4">
+      <label>ID Locação</label>
+      <input class="form-control" id="locacao_item">
+    </div>
+    <div class="col-md-4">
+      <label>ID Equipamento</label>
+      <input class="form-control" id="equip_item">
+    </div>
+    <div class="col-md-4">
+      <label>Quantidade</label>
+      <input class="form-control" id="equip_qtd">
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3" onclick="addItem()">Adicionar</button>
+  <div id="item_msg" class="mt-2 text-success"></div>
+</div>
+
+<!-- PARCELAS -->
+<div class="card shadow p-3 my-4">
+  <h3>Gerar Parcelas</h3>
+
+  <div class="row g-2">
+    <div class="col-md-6">
+      <label>ID Locação</label>
+      <input class="form-control" id="locacao_parc">
+    </div>
+    <div class="col-md-6">
+      <label>N° de Parcelas</label>
+      <input class="form-control" id="num_parc">
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3" onclick="gerarParcelas()">Gerar</button>
+  <div id="parcelas_msg" class="mt-2 text-success"></div>
+</div>
+
+<!-- PAGAMENTO -->
+<div class="card shadow p-3 my-4">
+  <h3>Pagar Parcela</h3>
+
+  <div class="row g-2">
+    <div class="col-md-6">
+      <label>ID Parcela</label>
+      <input class="form-control" id="id_parcela">
+    </div>
+    <div class="col-md-6">
+      <label>Valor Pago</label>
+      <input class="form-control" id="valor_pago">
+    </div>
+  </div>
+
+  <button class="btn btn-primary mt-3" onclick="pagarParcela()">Pagar</button>
+  <div id="pag_msg" class="mt-2 text-success"></div>
+</div>
+
+<!-- FECHAR -->
+<div class="card shadow p-3 my-4">
+  <h3>Encerrar Locação</h3>
+  <input class="form-control w-25" id="locacao_fech" placeholder="ID Locação">
+  <button class="btn btn-primary mt-3" onclick="fecharLocacao()">Encerrar</button>
+  <div id="fechar_msg" class="mt-2 text-success"></div>
+</div>
+
+<script>
+const API = "http://localhost:3333";
+
+async function listarClientes(){ renderTable(await (await fetch(API+"/clientes")).json(), "clientes"); }
+async function listarEquipamentos(){ renderTable(await (await fetch(API+"/equipamentos")).json(), "equipamentos"); }
+
+async function criarLocacao(){
+  const r = await fetch(API+"/locacoes",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id_cliente:id_cliente.value,data_locacao:data_locacao.value,data_prevista:data_prevista.value})
+  });
+  locacao_msg.innerHTML = await r.text();
+}
+
+async function addItem(){
+  const r = await fetch(API+"/locacoes/item",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id_locacao:locacao_item.value,id_equipamento:equip_item.value,quantidade:equip_qtd.value})
+  });
+  item_msg.innerHTML = await r.text();
+}
+
+async function gerarParcelas(){
+  const r = await fetch(API+"/locacoes/parcelas",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id_locacao:locacao_parc.value,num_parcelas:num_parc.value})
+  });
+  parcelas_msg.innerHTML = await r.text();
+}
+
+async function pagarParcela(){
+  const r = await fetch(API+"/parcelas/pagar",{
+    method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({id:id_parcela.value,valor_pago:valor_pago.value})
+  });
+  pag_msg.innerHTML = await r.text();
+}
+
+async function fecharLocacao(){
+  const r = await fetch(API+"/locacoes/fechar/"+locacao_fech.value,{method:"PUT"});
+  fechar_msg.innerHTML = await r.text();
+}
+
+function renderTable(data, div){
+  if(!data.length) return document.getElementById(div).innerHTML = "<p class='text-muted'>Sem dados</p>";
+  let h = `<table class='table table-hover table-bordered'><tr>`;
+  Object.keys(data[0]).forEach(k => h+=`<th>${k}</th>`);
+  h+="</tr>";
+  data.forEach(l=>{
+    h+="<tr>";
+    Object.values(l).forEach(v=> h+=`<td>${v}</td>`);
+    h+="</tr>";
+  });
+  document.getElementById(div).innerHTML = h+"</table>";
+}
+</script>
+
+</body>
+</html>
